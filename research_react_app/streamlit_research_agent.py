@@ -5,7 +5,27 @@
 
 from __future__ import annotations
 
+import os
+
 import streamlit as st
+
+
+def _secrets_to_env() -> None:
+    """Streamlit Community Cloud: Secrets → os.environ for langchain/dotenv callers."""
+    try:
+        sec = st.secrets
+    except Exception:
+        return
+    for key in ("OPENAI_API_KEY", "SERPER_API_KEY"):
+        try:
+            if key in sec:
+                os.environ.setdefault(key, str(sec[key]))
+        except Exception:
+            continue
+
+
+_secrets_to_env()
+
 from langchain_core.messages import HumanMessage
 
 from research_workflow import build_research_graph, new_thread_config

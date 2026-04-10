@@ -11,6 +11,12 @@ pip install -r requirements.txt
 streamlit run research_react_app/streamlit_research_agent.py
 ```
 
+## Streamlit Cloud
+
+- 브랜치: **`main`** 또는 **`master`**
+- 엔트리: **`research_react_app/streamlit_research_agent.py`**
+- Secrets: `OPENAI_API_KEY`, `SERPER_API_KEY` (저장소 루트 `requirements.txt` 사용)
+
 ## 구성
 
 - `research_workflow.py` — LangGraph 그래프, Serper·스텁 도구
