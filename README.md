@@ -32,10 +32,11 @@ streamlit run research_react_app/streamlit_research_agent.py
 
 **Branch 없음 오류**는 보통 Cloud에 설정된 브랜치 이름이 GitHub에 없을 때 납니다. 이 저장소는 **`main`** 과 **`master`**(동일 커밋) 둘 다 있습니다. 앱 설정에서 둘 중 하나를 선택하면 됩니다.
 
-1. [share.streamlit.io](https://share.streamlit.io) → GitHub 연결 → 해당 레포 선택
+1. [share.streamlit.io](https://share.streamlit.io) → GitHub 연결 → **`JEuichan/daily-assistant-langgraph`** 처럼 **이 레포 전체**를 선택 (파일만 복사한 빈 레포 `my_streamlit_app`이면 루트에 `requirements.txt`가 없어 `ModuleNotFoundError: langchain_core`가 납니다.)
 2. **Branch**: `main` 또는 `master`
 3. **Main file path**: `research_react_app/streamlit_research_agent.py`
-4. **App settings → Secrets** 에서 예시:
+4. **Requirements file** (고급): 비워 두면 기본값 **`requirements.txt` (저장소 루트)** — 이 레포 루트에 있음. 다른 경로로 바꿨다면 루트로 되돌리기.
+5. **App settings → Secrets** 에서 예시:
 
    ```toml
    OPENAI_API_KEY = "sk-..."
@@ -43,6 +44,8 @@ streamlit run research_react_app/streamlit_research_agent.py
    ```
 
    로컬 `.env`는 Git에 없으므로 Cloud에서는 Secrets로만 주입됩니다. 앱이 시작될 때 이 값들을 `os.environ`에 옮깁니다.
+
+**`ModuleNotFoundError: langchain_core`** 는 거의 항상 Cloud가 **의존성을 설치하지 못한 경우**입니다. 루트 `requirements.txt`가 있는 레포를 연결했는지, 배포 로그에 `pip install -r requirements.txt`가 성공했는지 확인하세요.
 
 ## 테스트
 
