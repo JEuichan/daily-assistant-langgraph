@@ -1,0 +1,86 @@
+goal: >-
+  Build a portfolio Streamlit app that runs a LangGraph ReAct-style agent for
+  research and light fact-checking, using real Serper web search plus stub tools,
+  with conditional branching after intermediate results (low confidence or
+  insufficient sources), automatic bounded retries inside the graph, optional
+  human confirmation in Streamlit when still ambiguous, and explicit one-line
+  explanations of why each branch was taken.
+
+constraints:
+  - Python environment compatible with LangGraph, LangChain, and Streamlit as used in this repo.
+  - LLM via OpenAI API with model gpt-5-mini only; do not downgrade to gpt-4 or gpt-4o.
+  - Embeddings, if used, must be text-embedding-3-small.
+  - gpt-5 family chat completions must not pass unsupported sampling parameters (e.g. temperature, top_p).
+  - At least one real integration: Serper (or equivalent Google search API wrapper); remaining tools may be stubs for portfolio clarity.
+  - Secrets (e.g. OPENAI_API_KEY, SERPER_API_KEY) loaded from environment or .env; no secrets in source.
+  - Branching must be observable: graph routes differ when confidence or evidence thresholds are not met.
+
+acceptance_criteria:
+  - Streamlit UI allows the user to submit a research question and see a final answer with cited or listed sources when available.
+  - The agent invokes Serper-backed search at least once on relevant queries and uses stub tools where specified in implementation without crashing.
+  - When the model or scorer marks an answer as low-confidence or lacking sources, the graph automatically retries or refines (e.g. additional search or rephrase) at most two times before stopping or asking the user.
+  - After automatic retries, if the run remains ambiguous, Streamlit prompts the user to continue or stop before further expensive steps.
+  - Each transition that is a branch (not only linear ReAct steps) surfaces a one-line reason in the UI (e.g. "Low confidence → additional search").
+  - Ambiguity score for this seed is at or below 0.2 per Ouroboros gate (computed 0.11).
+
+ontology_schema:
+  name: ResearchReActWorkflow
+  description: State and artifacts for a research-oriented ReAct agent with branching.
+  fields:
+    - name: user_query
+      type: string
+      description: Original question from Streamlit.
+    - name: messages
+      type: list
+      description: Conversation and tool messages for the LLM loop.
+    - name: search_results
+      type: list
+      description: Normalized hits from Serper (title, url, snippet).
+    - name: draft_answer
+      type: string|null
+      description: Proposed answer before verification or retry.
+    - name: confidence
+      type: float|null
+      description: Structured or parsed confidence in [0,1] when available.
+    - name: retry_count
+      type: integer
+      description: Number of automatic refinement loops already taken.
+    - name: branch_reasons
+      type: list
+      description: One-line strings explaining each routing decision shown in the UI.
+    - name: awaiting_user
+      type: boolean
+      description: True when the graph is paused for Streamlit user confirmation.
+    - name: user_decision
+      type: enum[continue, stop]|null
+      description: User choice after a pause.
+
+evaluation_principles:
+  - name: workflow_correctness
+    weight: 0.35
+    description: Branching and retries match acceptance criteria; Serper is used appropriately.
+  - name: portfolio_clarity
+    weight: 0.35
+    description: ReAct steps, tools, and branch reasons are easy to follow in code and UI.
+  - name: robustness
+    weight: 0.2
+    description: Graceful handling of API errors and empty search results without silent failure.
+  - name: security_and_config
+    weight: 0.1
+    description: Keys only in env; no forbidden model parameters on gpt-5-mini.
+
+exit_conditions:
+  - Final answer delivered to Streamlit with branch log consistent with graph execution.
+  - Automatic retry cap respected; user gate respected when implemented.
+  - acceptance_criteria checklist satisfied for the portfolio scope.
+
+metadata:
+  ambiguity_score: 0.11
+  ambiguity_notes: >-
+    Greenfield: clarity goal 0.95, constraints 0.82 (stub tool list TBD in code),
+    success 0.88. Ambiguity = 1 - (0.95×0.4 + 0.82×0.3 + 0.88×0.3) = 0.11 <= 0.2.
+  timestamp: "2026-04-10T00:00:00Z"
+  source: ouroboros-seed
+  interview_reference: >-
+    Portfolio goal; mixed Serper + stubs; research/fact-check topic; auto retry
+    1–2 then Streamlit user confirmation; UI emphasizes one-line branch reasons.
