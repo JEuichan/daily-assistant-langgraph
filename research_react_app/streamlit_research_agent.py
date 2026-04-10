@@ -1,9 +1,60 @@
+# streamlit-bootstrap-v4 — Cloud에서 이 주석이 보이면 최신 배포입니다.
 """
-리서치 ReAct + Serper + 분기/재시도/사용자 게이트 — `research_react_app/.ouroboros/seed.yaml` 스펙.
-실행(저장소 루트에서): `streamlit run research_react_app/streamlit_research_agent.py`
+리서치 ReAct + Serper + 분기/재시도/사용자 게이트.
+실행(저장소 루트): streamlit run research_react_app/streamlit_research_agent.py
+
+langchain import는 모두 지연(lazy). Python 3.14에서는 일부 휠이 없을 수 있어 runtime.txt로 3.11 권장.
 """
 
 from __future__ import annotations
+
+import subprocess
+import sys
+
+
+def _ensure_runtime_deps() -> None:
+    """requirements.txt가 적용되지 않은 환경에서 pip로 한 번 설치 후 import 검증."""
+    try:
+        import langchain_core.messages  # noqa: F401
+        return
+    except ImportError:
+        pass
+    pkgs = [
+        "langchain-core>=0.3.29",
+        "langgraph>=0.2.28",
+        "langchain-openai>=0.3.0",
+        "httpx>=0.27.0",
+        "python-dotenv>=1.0.0",
+        "pydantic>=2,<3",
+    ]
+    try:
+        subprocess.check_call(
+            [
+                sys.executable,
+                "-m",
+                "pip",
+                "install",
+                "--user",
+                "-q",
+                *pkgs,
+            ],
+            timeout=600,
+        )
+    except (subprocess.CalledProcessError, subprocess.TimeoutExpired) as e:
+        raise RuntimeError(
+            "pip로 langchain-core 등을 설치하지 못했습니다. "
+            "Streamlit Cloud에서 requirements.txt 경로·브랜치를 확인하세요."
+        ) from e
+    try:
+        import langchain_core.messages  # noqa: F401
+    except ImportError as e:
+        raise RuntimeError(
+            "pip 설치 후에도 langchain_core를 불러올 수 없습니다. "
+            "Manage app → Logs에서 pip 로그를 확인하세요."
+        ) from e
+
+
+_ensure_runtime_deps()
 
 import os
 
@@ -11,7 +62,6 @@ import streamlit as st
 
 
 def _secrets_to_env() -> None:
-    """Streamlit Community Cloud: Secrets → os.environ for langchain/dotenv callers."""
     try:
         sec = st.secrets
     except Exception:
@@ -25,10 +75,6 @@ def _secrets_to_env() -> None:
 
 
 _secrets_to_env()
-
-from langchain_core.messages import HumanMessage
-
-from research_workflow import build_research_graph, new_thread_config
 
 
 def merge_invoke_state(out, graph, cfg) -> dict:
@@ -49,6 +95,8 @@ def merge_invoke_state(out, graph, cfg) -> dict:
 
 @st.cache_resource
 def get_graph():
+    from research_workflow import build_research_graph
+
     return build_research_graph()
 
 
@@ -180,6 +228,9 @@ def main():
         disabled=st.session_state.awaiting_user,
     )
     if user_text and not st.session_state.awaiting_user:
+        from langchain_core.messages import HumanMessage
+        from research_workflow import new_thread_config
+
         cfg = new_thread_config()
         st.session_state.last_user_query = user_text
         st.session_state.last_run_error = None
