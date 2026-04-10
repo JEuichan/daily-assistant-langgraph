@@ -4,7 +4,9 @@ from __future__ import annotations
 
 import operator
 import os
+import sys
 import uuid
+from pathlib import Path
 from typing import Annotated, Literal, Sequence, TypedDict
 
 import httpx
@@ -16,8 +18,13 @@ from langgraph.graph import END, START, StateGraph
 from langgraph.graph.message import add_messages
 from pydantic import BaseModel, Field
 
+_REPO_ROOT = Path(__file__).resolve().parent.parent
+if str(_REPO_ROOT) not in sys.path:
+    sys.path.insert(0, str(_REPO_ROOT))
+
 from daily_assistant_core import build_llm
 
+load_dotenv(_REPO_ROOT / ".env")
 load_dotenv()
 
 CONFIDENCE_OK = 0.65

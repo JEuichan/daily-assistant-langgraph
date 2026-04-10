@@ -1,6 +1,6 @@
 """
-리서치 ReAct + Serper + 분기/재시도/사용자 게이트 — `.ouroboros/seed.yaml` 스펙.
-실행: `streamlit run streamlit_research_agent.py`
+리서치 ReAct + Serper + 분기/재시도/사용자 게이트 — `research_react_app/.ouroboros/seed.yaml` 스펙.
+실행(저장소 루트에서): `streamlit run research_react_app/streamlit_research_agent.py`
 """
 
 from __future__ import annotations
@@ -61,7 +61,7 @@ def main():
             st.session_state.last_user_query = None
             st.rerun()
         st.markdown(
-            "`OPENAI_API_KEY`, `SERPER_API_KEY` 는 환경 변수 또는 `.env` 에 설정하세요."
+            "`OPENAI_API_KEY`, `SERPER_API_KEY` 는 환경 변수 또는 저장소 루트 `.env` 에 설정하세요."
         )
 
     col_log, col_chat = st.columns([1, 1])

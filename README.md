@@ -18,6 +18,16 @@ cp .env.example .env
 streamlit run streamlit_daily_assistant.py
 ```
 
+### 리서치 ReAct (Serper·분기·시드)
+
+저장소 루트에서:
+
+```bash
+streamlit run research_react_app/streamlit_research_agent.py
+```
+
+상세는 `research_react_app/README.md` 참고.
+
 ## 테스트
 
 ```bash
@@ -29,3 +39,4 @@ python test_daily_assistant.py
 - `daily_assistant_core.py` — 도구, 에이전트, `DailyAssistant` 히스토리
 - `streamlit_daily_assistant.py` — Streamlit 앱
 - `test_daily_assistant.py` — 다턴 대화 스모크 테스트
+- `research_react_app/` — 리서치 ReAct LangGraph·Streamlit·시드·HTML 보고서
