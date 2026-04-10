@@ -31,6 +31,26 @@ CONFIDENCE_OK = 0.65
 MAX_AUTO_RETRIES = 2
 
 
+def _ai_text_content(msg: AIMessage | None) -> str:
+    """Normalize AIMessage.content (str or list of blocks) to plain text."""
+    if msg is None:
+        return ""
+    c = msg.content
+    if isinstance(c, str):
+        return c.strip()
+    if isinstance(c, list):
+        parts: list[str] = []
+        for block in c:
+            if isinstance(block, str):
+                parts.append(block)
+            elif isinstance(block, dict):
+                t = block.get("text")
+                if isinstance(t, str):
+                    parts.append(t)
+        return "\n".join(parts).strip()
+    return str(c).strip() if c else ""
+
+
 class EvalResult(BaseModel):
     """Structured evaluation of draft answer quality."""
 
@@ -155,7 +175,7 @@ def react_node(state: ResearchState) -> dict:
             new_msgs.append(ToolMessage(content=str(out), tool_call_id=tid, name=name))
 
     last_ai = next((m for m in reversed(new_msgs) if isinstance(m, AIMessage)), None)
-    draft = (last_ai.content if last_ai and isinstance(last_ai.content, str) else "") or ""
+    draft = _ai_text_content(last_ai) if last_ai else ""
 
     return {
         "messages": new_msgs,
